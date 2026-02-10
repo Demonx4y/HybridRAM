@@ -1,0 +1,6 @@
+id=hybridram
+name=HybridRAM 🚀
+version=1.0
+versionCode=1
+author=Razal (Razal1_1)
+description=System-level hybrid memory configuration using high-priority compressed ZRAM with a swapfile fallback. Applies boot-time VM tuning and enforces ZRAM-first reclaim behavior through standard kernel interfaces. Designed for stability, balanced multitasking, and safe operation on both stock and custom kernels.
