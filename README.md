@@ -1,168 +1,199 @@
-# 🚀 HybridRAM
+# Network Engine 🛜
 
-HybridRAM is a system-level Magisk module that configures a
-hybrid virtual memory setup using:
-
-• Compressed ZRAM (RAM-based swap)  
-• UFS-backed swapfile (storage-based fallback)  
-
-The module is designed to improve memory stability and consistency during
-real-world usage such as multitasking, gaming, and long sessions.
-
-The focus is sustained behavior, not short benchmark spikes.
+Dynamic Kernel Level Network Optimization for Rooted Android
 
 ---
 
-## What HybridRAM Does
+## Overview
 
-HybridRAM establishes a ZRAM-first memory flow:
+Network Engine is a Magisk module that enhances the Linux TCP networking stack on Android devices using adaptive, capability based tuning.
 
-• Enables compressed ZRAM as the primary reclaim layer  
-• Uses storage-backed swap only as a fallback  
-• Ensures ZRAM is preferred whenever possible  
-• Applies safe VM tuning commonly reset by Android  
-• Smooths writeback behavior under sustained load  
-• Applies kernel-safe I/O read-ahead tuning  
-• Reasserts critical parameters only when Android resets them  
+All adjustments are performed within kernel limits.
+No unsupported features are forced.
+
+The objective is stable latency, consistent throughput and sustained real world performance across WiFi and mobile networks.
 
 ---
 
-## Hybrid Memory Architecture
+## Core Architecture
 
-HybridRAM does not rely on a single memory technique.
+### Congestion Control Selection
 
-It combines two layers with different responsibilities:
+Automatically selects the best available algorithm in this order:
 
-### ZRAM (Compressed RAM)
+• bbr
+• cubic
+• reno
 
-• Very fast  
-• Low latency  
-• Handles frequent reclaim  
-• Preferred during memory pressure  
-
-### Swapfile (UFS-backed storage)
-
-• Larger capacity  
-• Higher latency  
-• Used only when RAM and ZRAM are saturated  
-
-HybridRAM maintains a ZRAM-first, swap-second order so storage I/O is reduced
-and latency spikes are minimized.
-
-This results in smoother multitasking and more predictable long-term behavior.
+Selection is based on actual kernel availability.
 
 ---
 
-## Memory Layout
+### Queue Discipline Optimization
 
-By default, HybridRAM configures:
+Automatically selects:
 
-• 4 GB ZRAM (primary reclaim layer)  
-• 4 GB swapfile (secondary fallback layer)  
+• fq when supported
+• pfifo_fast as fallback
 
-If a kernel does not support swap priority, the module falls back gracefully
-using standard kernel behavior.
-
-Nothing is forced beyond hardware or kernel limits.
+Applied globally and to active interfaces.
 
 ---
 
-## Design Philosophy
+## Dynamic Network Engine
 
-Android memory management is dynamic and aggressive.
-Many one-time tweaks are silently reverted after boot.
+### Adaptive Buffer Scaling
 
-HybridRAM is designed to:
+Network Engine dynamically adjusts:
 
-• Apply safe baseline tuning  
-• Reassert only parameters Android commonly resets  
-• Avoid constant or aggressive forcing  
-• Respect kernel and hardware limits  
+• tcp_rmem
+• tcp_wmem
+• rmem_max
+• wmem_max
+• netdev_max_backlog
 
-The goal is consistent performance over time, not temporary boosts.
+Based on:
 
----
+• WiFi or mobile data
+• Metered state
+• Mobile signal strength
 
-## Gaming and Multitasking
+Weak signal environments use conservative buffers for stability.
+Strong signal environments scale higher for throughput.
 
-HybridRAM is tuned for gaming and heavy multitasking:
-
-• Reduces sudden memory pressure spikes  
-• Helps mitigate aggressive background app kills  
-• Avoids large swap bursts that cause frame drops  
-• Improves app switching under load  
-• Maintains stable foreground performance  
-
-The module works with Android’s memory system rather than against it.
+A built in safety cap prevents excessive allocation.
 
 ---
 
-## Transparency
+### Safe Initial Window Enhancement
 
-HybridRAM does not increase physical RAM or change hardware capabilities.
+When supported by the kernel, Network Engine safely applies:
 
-It optimizes how existing RAM and storage are used and improves reclaim behavior
-under memory pressure.
+initcwnd 16
+initrwnd 16
 
-Results depend on device, kernel, storage speed, ROM configuration, and workload.
+This improves connection startup performance without extreme or unsafe values.
+
+Applied only when supported.
+
+---
+
+### Stability Layer
+
+Enhances TCP reliability through controlled activation of:
+
+• tcp_sack
+• tcp_window_scaling
+• tcp_tw_reuse
+• tcp_syn_retries refinement
+
+Values are adjusted only when necessary to avoid unnecessary overrides.
+
+---
+
+## Runtime Engine
+
+Lightweight background monitor that:
+
+• Maintains congestion control
+• Maintains queue discipline
+• Reapplies parameters if modified
+• Adapts to network state changes
+• Avoids excessive logging or polling
+
+Designed for minimal overhead and stable long term operation.
+
+---
+
+## Network Awareness
+
+Detects automatically:
+
+• WiFi
+• Mobile data
+• Metered networks
+• Signal quality (mobile)
+
+Optimized for modern 4G and 5G networks without hardcoded radio tuning.
+
+---
+
+## Safe Handling
+
+On first run the module stores:
+
+• Original congestion control
+• Original default qdisc
+
+On uninstall, original values are restored automatically.
+
+No permanent kernel modification.
+
+---
+
+## Compatibility
+
+• Android 10 and above
+• Latest stable Magisk recommended
+• Kernels exposing TCP controls via /proc/sys
+
+Supports Snapdragon, MediaTek, Exynos and other Linux based Android kernels.
+
+Automatic fallback is used when features are unavailable.
 
 ---
 
 ## Installation
 
-1. Flash the module via Magisk  
-2. Reboot  
+Flash through Magisk.
+Reboot.
 
-HybridRAM activates automatically at boot.
-No manual configuration is required.
+Network Engine activates automatically.
 
 ---
 
 ## Uninstall
 
-• Disable or remove the module in Magisk  
-• Reboot  
+Remove the module from Magisk.
+Reboot.
 
-The system returns to stock memory behavior automatically.
+Original networking values are restored.
 
 ---
 
-## Status
+## Design Philosophy
 
-• Tested on multiple devices and ROMs  
-• Used under gaming and heavy multitasking scenarios  
-• Designed to be kernel-safe and ROM-tolerant  
+Network performance should be stable, predictable and adaptive.
 
-Future updates may include:
+Network Engine follows these principles:
 
-• Minor tuning refinements  
-• Optional profiles  
-• Clearly labeled experimental features  
+Capability based tuning  
+All adjustments depend on real kernel support.
+
+Balanced scaling  
+Buffers scale according to network conditions, not fixed extreme presets.
+
+Controlled enhancement  
+Performance is improved without pushing unsafe limits.
+
+Self healing behavior  
+Critical parameters remain consistent without aggressive overhead.
+
+The goal is long term stability under real usage conditions.
 
 ---
 
 ## Author
 
-Razal (Razal1_1)  
-Independent developer  
+Razal (Razal1_1)
+Independent Developer
 
 Email: razalrazal759@gmail.com
 
 ---
-
 ## License
 
-This project is **open source** and distributed under a custom license.
+This project is licensed under the GNU General Public License v3 (GPLv3).
 
-You are free to:
-• Use the software  
-• Study how it works  
-• Modify it for personal or educational purposes  
-
-Conditions:
-• Proper attribution to the original author is required  
-• Redistribution must include this README and the LICENSE file  
-• Commercial use, paid redistribution, or bundling in paid products
-  is **not permitted** without explicit permission  
-
-See the `LICENSE` file for full terms.
+You are free to use, modify, and redistribute this project under the terms of the GPLv3.
+See the `LICENSE` file for full details.
